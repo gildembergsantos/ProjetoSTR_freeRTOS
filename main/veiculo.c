@@ -3,6 +3,8 @@
 
 #include "esp_random.h"
 
+
+
 PrioridadeVeiculo definirPrioridade(int bateria)
 {
     PrioridadeVeiculo prioridade = PRIORIDADE_NORMAL;
@@ -24,20 +26,80 @@ PrioridadeVeiculo definirPrioridade(int bateria)
     return prioridade;
 }
 
-Veiculo criarVeiculo(int id)
+int calcularTempoCarregamentoMs(int bateria)
+{
+    /*
+     * Proteção contra valores inválidos.
+     */
+    if (bateria < 0)
+    {
+        bateria = 0;
+    }
+    else if (bateria > 100)
+    {
+        bateria = 100;
+    }
+
+    int percentualRestante = 100 - bateria;
+
+    return percentualRestante *
+           TEMPO_POR_PERCENTUAL_MS;
+}
+
+Veiculo criarVeiculoPorTipo(
+    int id,
+    TipoVeiculo tipo
+)
 {
     Veiculo veiculo;
 
     veiculo.id = id;
 
-    /*
-     * Gera valores entre 10 e 70:
-     * esp_random() % 61 produz valores entre 0 e 60.
-     */
-    veiculo.bateria = 10 + (esp_random() % 61);
+    switch (tipo)
+    {
+        case TIPO_VEICULO_CRITICO:
+            /*
+             * Bateria entre 10% e 30%.
+             */
+            veiculo.bateria =
+                10 + (esp_random() % 21);
 
-    veiculo.prioridade =
-        definirPrioridade(veiculo.bateria);
+            veiculo.prioridade =
+                PRIORIDADE_BATERIA_CRITICA;
+
+            break;
+
+        case TIPO_VEICULO_EMERGENCIA:
+            /*
+             * Emergência pode possuir qualquer bateria
+             * dentro da faixa da simulação.
+             */
+            veiculo.bateria =
+                10 + (esp_random() % 61);
+
+            veiculo.prioridade =
+                PRIORIDADE_EMERGENCIA;
+
+            break;
+
+        case TIPO_VEICULO_NORMAL:
+        default:
+            /*
+             * Bateria entre 31% e 70%.
+             */
+            veiculo.bateria =
+                31 + (esp_random() % 40);
+
+            veiculo.prioridade =
+                PRIORIDADE_NORMAL;
+
+            break;
+    }
+
+    veiculo.tempoCarregamentoMs =
+        calcularTempoCarregamentoMs(
+            veiculo.bateria
+        );
 
     return veiculo;
 }

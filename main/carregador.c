@@ -3,6 +3,7 @@
 #include "carregador.h"
 #include "config.h"
 #include "veiculo.h"
+#include "hardware.h"
 
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
@@ -48,29 +49,33 @@ static void tarefaCarregador(void *parametro)
                 portMAX_DELAY
             ) == pdPASS)
         {
+            ligarLedCarregador(idCarregador);
+
             printf(
-                "[CARREGADOR %d] Iniciando veiculo %d | "
-                "Bateria: %d%% | Prioridade: %s\n",
+                "[CARREGADOR %d] Veiculo %d iniciado | "
+                "Bateria: %d%% | Tempo: %.1f s | Prioridade: %s\n",
                 idCarregador,
                 veiculo.id,
                 veiculo.bateria,
+                veiculo.tempoCarregamentoMs / 1000.0,
                 textoPrioridade(veiculo.prioridade)
             );
 
-            /*
-             * Simula o período de carregamento.
-             * Apenas esta tarefa fica bloqueada.
-             */
             vTaskDelay(
-                pdMS_TO_TICKS(TEMPO_CARREGAMENTO_MS)
+                pdMS_TO_TICKS(
+                    veiculo.tempoCarregamentoMs
+                )
             );
 
             printf(
-                "[CARREGADOR %d] Veiculo %d finalizou "
-                "o carregamento.\n",
+                "[CARREGADOR %d] Veiculo %d concluido "
+                "apos %.1f s.\n",
                 idCarregador,
-                veiculo.id
+                veiculo.id,
+                veiculo.tempoCarregamentoMs / 1000.0
             );
+
+            desligarLedCarregador(idCarregador);
 
             /*
              * Devolve uma unidade ao semáforo contador,
