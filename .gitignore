@@ -1,0 +1,19 @@
+# Arquivos gerados pelo ESP-IDF
+build/
+managed_components/
+
+# Configurações locais do VS Code
+.vscode/
+
+# Arquivos temporários e binários
+*.o
+*.obj
+*.elf
+*.bin
+*.map
+*.log
+*.pyc
+
+# Arquivos do sistema
+Thumbs.db
+.DS_Store
