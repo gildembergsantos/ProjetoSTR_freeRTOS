@@ -8,17 +8,33 @@ typedef enum
     PRIORIDADE_EMERGENCIA = 2
 } PrioridadeVeiculo;
 
+typedef enum
+{
+    TIPO_VEICULO_NORMAL = 0,
+    TIPO_VEICULO_CRITICO,
+    TIPO_VEICULO_EMERGENCIA
+} TipoVeiculo;
+
 typedef struct
 {
     int id;
     int bateria;
+    int tempoCarregamentoMs;
     PrioridadeVeiculo prioridade;
 } Veiculo;
 
-Veiculo criarVeiculo(int id);
+
+Veiculo criarVeiculoPorTipo(
+    int id,
+    TipoVeiculo tipo
+);
 
 PrioridadeVeiculo definirPrioridade(int bateria);
 
-const char *textoPrioridade(PrioridadeVeiculo prioridade);
+int calcularTempoCarregamentoMs(int bateria);
+
+const char *textoPrioridade(
+    PrioridadeVeiculo prioridade
+);
 
 #endif

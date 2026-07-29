@@ -5,8 +5,27 @@
 #include "fila.h"
 #include "veiculo.h"
 #include "carregador.h"
+#include "hardware.h"
 
 #include "freertos/task.h"
+
+static TipoVeiculo converterEventoParaTipo(
+    EventoBotao evento
+)
+{
+    switch (evento)
+    {
+        case EVENTO_BOTAO_CRITICO:
+            return TIPO_VEICULO_CRITICO;
+
+        case EVENTO_BOTAO_EMERGENCIA:
+            return TIPO_VEICULO_EMERGENCIA;
+
+        case EVENTO_BOTAO_NORMAL:
+        default:
+            return TIPO_VEICULO_NORMAL;
+    }
+}
 
 static void tarefaChegada(void *parametro)
 {
@@ -14,17 +33,71 @@ static void tarefaChegada(void *parametro)
 
     int proximoId = 1;
 
+    /*
+     * Um instante anterior para cada botão.
+     * Utilizado no tratamento de debounce.
+     */
+    TickType_t ultimoEvento[3] = {
+        0,
+        0,
+        0
+    };
+
+    EventoBotao evento;
+
     while (1)
     {
+        /*
+         * A tarefa permanece bloqueada até algum botão
+         * gerar um evento.
+         */
+        if (
+            aguardarEventoBotao(
+                &evento,
+                portMAX_DELAY
+            ) != pdPASS
+        )
+        {
+            continue;
+        }
+
+        TickType_t instanteAtual =
+            xTaskGetTickCount();
+
+        /*
+         * Ignora eventos repetidos do mesmo botão
+         * dentro da janela de debounce.
+         */
+        if (
+            ultimoEvento[evento] != 0 &&
+            (instanteAtual - ultimoEvento[evento]) <
+                pdMS_TO_TICKS(TEMPO_DEBOUNCE_MS)
+        )
+        {
+            continue;
+        }
+
+        ultimoEvento[evento] = instanteAtual;
+
+        TipoVeiculo tipo =
+            converterEventoParaTipo(evento);
+
         Veiculo veiculo =
-            criarVeiculo(proximoId);
+            criarVeiculoPorTipo(
+                proximoId,
+                tipo
+            );
 
         printf(
-            "[CHEGADA] Veiculo %d | "
-            "Bateria: %d%% | Prioridade: %s\n",
+            "[BOTAO] Veiculo %d adicionado | "
+            "Bateria: %d%% | Tempo: %.1f s | "
+            "Prioridade: %s\n",
             veiculo.id,
             veiculo.bateria,
-            textoPrioridade(veiculo.prioridade)
+            veiculo.tempoCarregamentoMs / 1000.0,
+            textoPrioridade(
+                veiculo.prioridade
+            )
         );
 
         if (
@@ -33,17 +106,15 @@ static void tarefaChegada(void *parametro)
         )
         {
             printf(
-                "[ERRO] Nao foi possivel inserir "
-                "o veiculo %d na fila.\n",
+                "[ERRO] Fila cheia. Veiculo %d "
+                "nao foi inserido.\n",
                 veiculo.id
             );
         }
-
-        proximoId++;
-
-        vTaskDelay(
-            pdMS_TO_TICKS(INTERVALO_CHEGADA_MS)
-        );
+        else
+        {
+            proximoId++;
+        }
     }
 }
 

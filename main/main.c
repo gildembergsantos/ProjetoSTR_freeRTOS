@@ -1,11 +1,25 @@
 #include <stdio.h>
 
 #include "estacao.h"
+#include "hardware.h"
 
 void app_main(void)
 {
     printf(
         "\n[SISTEMA] Iniciando estacao de carregamento...\n"
+    );
+
+    if (inicializarHardware() != ESP_OK)
+    {
+        printf(
+            "[ERRO] Falha ao inicializar hardware.\n"
+        );
+
+        return;
+    }
+
+    printf(
+        "[SISTEMA] Hardware inicializado.\n"
     );
 
     if (inicializarEstacao() != pdPASS)
