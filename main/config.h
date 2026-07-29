@@ -9,9 +9,6 @@
 /* Tamanho das filas de prioridade */
 #define TAMANHO_FILA 10
 
-/* Veículos com bateria menor ou igual a este valor são considerados críticos */
-#define LIMITE_BATERIA_CRITICA 30
-
 
 /* Quantidade de carregadores da estação */
 #define NUM_CARREGADORES 3
