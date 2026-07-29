@@ -216,7 +216,7 @@ Os testes realizados permitiram validar:
 ---
 ## Vídeo de Demonstração de Funcionamento
 
-- [Vídeo de demonstração](COLE_AQUI_O_LINK_DO_VIDEO)
+- [Vídeo de demonstração](https://youtu.be/d-rbOEdhFGM)
 
 ---
 
