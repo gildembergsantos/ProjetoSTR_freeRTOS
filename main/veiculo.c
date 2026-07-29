@@ -8,29 +8,6 @@
 
 #include "esp_random.h"
 
-/**
- * @brief Define a prioridade de acordo com a bateria e a chance de emergência.
- *
- * @param bateria Nível de bateria do veículo.
- * @return Prioridade atribuída ao veículo.
- */
-PrioridadeVeiculo definirPrioridade(int bateria)
-{
-    PrioridadeVeiculo prioridade = PRIORIDADE_NORMAL;
-
-    if (bateria <= LIMITE_BATERIA_CRITICA)
-    {
-        prioridade = PRIORIDADE_BATERIA_CRITICA;
-    }
-
-    /* A emergência possui prioridade superior às demais classificações. */
-    if ((esp_random() % 100) < CHANCE_EMERGENCIA)
-    {
-        prioridade = PRIORIDADE_EMERGENCIA;
-    }
-
-    return prioridade;
-}
 
 /**
  * @brief Calcula o tempo necessário para completar a carga.
