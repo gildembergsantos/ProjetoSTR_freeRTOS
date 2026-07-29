@@ -1,4 +1,4 @@
-# Estação Inteligente de Carregamento de Veículos Elétricos utilizando FreeRTOS e ESP32
+# Estação de Carregamento de Veículos Elétricos utilizando FreeRTOS e ESP32
 
 ## Descrição
 
