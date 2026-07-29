@@ -1,10 +1,19 @@
+/**
+ * @file veiculo.c
+ * @brief Implementação das operações relacionadas aos veículos.
+ */
+
 #include "veiculo.h"
 #include "config.h"
 
 #include "esp_random.h"
 
-
-
+/**
+ * @brief Define a prioridade de acordo com a bateria e a chance de emergência.
+ *
+ * @param bateria Nível de bateria do veículo.
+ * @return Prioridade atribuída ao veículo.
+ */
 PrioridadeVeiculo definirPrioridade(int bateria)
 {
     PrioridadeVeiculo prioridade = PRIORIDADE_NORMAL;
@@ -14,10 +23,7 @@ PrioridadeVeiculo definirPrioridade(int bateria)
         prioridade = PRIORIDADE_BATERIA_CRITICA;
     }
 
-    /*
-     * A emergência possui prioridade maior e, por isso,
-     * substitui a classificação de bateria crítica.
-     */
+    /* A emergência possui prioridade superior às demais classificações. */
     if ((esp_random() % 100) < CHANCE_EMERGENCIA)
     {
         prioridade = PRIORIDADE_EMERGENCIA;
@@ -26,11 +32,15 @@ PrioridadeVeiculo definirPrioridade(int bateria)
     return prioridade;
 }
 
+/**
+ * @brief Calcula o tempo necessário para completar a carga.
+ *
+ * @param bateria Nível atual de bateria.
+ * @return Tempo de carregamento em milissegundos.
+ */
 int calcularTempoCarregamentoMs(int bateria)
 {
-    /*
-     * Proteção contra valores inválidos.
-     */
+    /* Limita a bateria ao intervalo válido. */
     if (bateria < 0)
     {
         bateria = 0;
@@ -46,6 +56,13 @@ int calcularTempoCarregamentoMs(int bateria)
            TEMPO_POR_PERCENTUAL_MS;
 }
 
+/**
+ * @brief Cria um veículo com atributos definidos pelo tipo.
+ *
+ * @param id Identificador do veículo.
+ * @param tipo Tipo de veículo.
+ * @return Veículo criado.
+ */
 Veiculo criarVeiculoPorTipo(
     int id,
     TipoVeiculo tipo
@@ -58,9 +75,7 @@ Veiculo criarVeiculoPorTipo(
     switch (tipo)
     {
         case TIPO_VEICULO_CRITICO:
-            /*
-             * Bateria entre 10% e 30%.
-             */
+            /* Gera bateria entre 10% e 30%. */
             veiculo.bateria =
                 10 + (esp_random() % 21);
 
@@ -70,10 +85,7 @@ Veiculo criarVeiculoPorTipo(
             break;
 
         case TIPO_VEICULO_EMERGENCIA:
-            /*
-             * Emergência pode possuir qualquer bateria
-             * dentro da faixa da simulação.
-             */
+            /* Gera bateria entre 10% e 70%. */
             veiculo.bateria =
                 10 + (esp_random() % 61);
 
@@ -84,9 +96,7 @@ Veiculo criarVeiculoPorTipo(
 
         case TIPO_VEICULO_NORMAL:
         default:
-            /*
-             * Bateria entre 31% e 70%.
-             */
+            /* Gera bateria entre 31% e 70%. */
             veiculo.bateria =
                 31 + (esp_random() % 40);
 
@@ -104,6 +114,12 @@ Veiculo criarVeiculoPorTipo(
     return veiculo;
 }
 
+/**
+ * @brief Retorna o texto correspondente à prioridade.
+ *
+ * @param prioridade Prioridade do veículo.
+ * @return Texto descritivo da prioridade.
+ */
 const char *textoPrioridade(PrioridadeVeiculo prioridade)
 {
     switch (prioridade)

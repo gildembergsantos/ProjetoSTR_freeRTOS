@@ -1,18 +1,28 @@
+/**
+ * @file fila.c
+ * @brief Implementação das filas de prioridade da estação.
+ */
+
 #include "fila.h"
 #include "config.h"
 
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 
+/* Filas para cada nível de prioridade. */
 static QueueHandle_t filaEmergencia = NULL;
 static QueueHandle_t filaBateriaCritica = NULL;
 static QueueHandle_t filaNormal = NULL;
 
-/*
- * Conta o total de veículos existentes nas três filas.
- */
+/* Contabiliza a quantidade total de veículos nas filas. */
 static SemaphoreHandle_t veiculosDisponiveis = NULL;
 
+/**
+ * @brief Retorna a fila correspondente à prioridade informada.
+ *
+ * @param prioridade Prioridade do veículo.
+ * @return Fila correspondente.
+ */
 static QueueHandle_t selecionarFila(
     PrioridadeVeiculo prioridade
 )
@@ -31,6 +41,12 @@ static QueueHandle_t selecionarFila(
     }
 }
 
+/**
+ * @brief Inicializa as filas de prioridade e o semáforo de veículos.
+ *
+ * @return pdPASS em caso de sucesso.
+ * @return pdFAIL em caso de falha.
+ */
 BaseType_t inicializarFilas(void)
 {
     filaEmergencia = xQueueCreate(
@@ -66,6 +82,13 @@ BaseType_t inicializarFilas(void)
     return pdPASS;
 }
 
+/**
+ * @brief Insere um veículo na fila correspondente à sua prioridade.
+ *
+ * @param veiculo Ponteiro para o veículo.
+ * @return pdPASS em caso de sucesso.
+ * @return pdFAIL em caso de falha.
+ */
 BaseType_t inserirVeiculoNaFila(
     const Veiculo *veiculo
 )
@@ -92,15 +115,18 @@ BaseType_t inserirVeiculoNaFila(
         return pdFAIL;
     }
 
-    /*
-     * O contador só é incrementado após
-     * a inserção efetiva do veículo.
-     */
+    /* Indica que há mais um veículo disponível para atendimento. */
     xSemaphoreGive(veiculosDisponiveis);
 
     return pdPASS;
 }
 
+/**
+ * @brief Aguarda até existir um veículo disponível.
+ *
+ * @return pdTRUE quando houver um veículo disponível.
+ * @return pdFAIL se o semáforo não estiver inicializado.
+ */
 BaseType_t aguardarVeiculoDisponivel(void)
 {
     if (veiculosDisponiveis == NULL)
@@ -114,6 +140,16 @@ BaseType_t aguardarVeiculoDisponivel(void)
     );
 }
 
+/**
+ * @brief Remove o veículo de maior prioridade disponível.
+ *
+ * A ordem de atendimento é:
+ * emergência → crítico → normal.
+ *
+ * @param veiculo Ponteiro para armazenar o veículo removido.
+ * @return pdPASS em caso de sucesso.
+ * @return pdFAIL caso todas as filas estejam vazias.
+ */
 BaseType_t removerVeiculoPrioritario(
     Veiculo *veiculo
 )

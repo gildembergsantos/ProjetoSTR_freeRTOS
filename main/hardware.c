@@ -1,3 +1,8 @@
+/**
+ * @file hardware.c
+ * @brief Implementação do acesso aos botões e LEDs.
+ */
+
 #include <stdint.h>
 
 #include "hardware.h"
@@ -8,12 +13,15 @@
 
 #include "freertos/queue.h"
 
-/*
- * Fila que transporta os eventos das interrupções
- * até a tarefa de chegada dos veículos.
- */
+/* Transporta os eventos das interrupções até a tarefa de chegada. */
 static QueueHandle_t filaEventosBotoes = NULL;
 
+/**
+ * @brief Obtém o GPIO associado a um carregador.
+ *
+ * @param idCarregador Identificador do carregador.
+ * @return GPIO correspondente ou GPIO_NUM_NC para um ID inválido.
+ */
 static gpio_num_t obterGpioLedCarregador(
     int idCarregador
 )
@@ -34,13 +42,10 @@ static gpio_num_t obterGpioLedCarregador(
     }
 }
 
-/*
- * Esta função executa dentro da interrupção.
+/**
+ * @brief Envia o evento do botão para a fila a partir da interrupção.
  *
- * Ela deve ser curta:
- * - identifica o botão;
- * - envia o evento para a fila;
- * - solicita troca de contexto, se necessário.
+ * @param arg Tipo de evento associado ao botão.
  */
 static void IRAM_ATTR tratarInterrupcaoBotao(void *arg)
 {
@@ -62,6 +67,12 @@ static void IRAM_ATTR tratarInterrupcaoBotao(void *arg)
     }
 }
 
+/**
+ * @brief Configura os GPIOs utilizados pelos LEDs.
+ *
+ * @return ESP_OK em caso de sucesso.
+ * @return Código de erro em caso de falha.
+ */
 static esp_err_t configurarLeds(void)
 {
     gpio_config_t configuracaoLeds = {
@@ -91,12 +102,15 @@ static esp_err_t configurarLeds(void)
     return ESP_OK;
 }
 
+/**
+ * @brief Configura os botões e suas interrupções.
+ *
+ * @return ESP_OK em caso de sucesso.
+ * @return Código de erro em caso de falha.
+ */
 static esp_err_t configurarBotoes(void)
 {
-    /*
-     * Os botões são ligados entre o GPIO e o GND.
-     * Por isso ativamos o pull-up interno.
-     */
+    /* Os botões são conectados entre o GPIO e o GND. */
     gpio_config_t configuracaoBotoes = {
         .pin_bit_mask =
             (1ULL << GPIO_BOTAO_NORMAL) |
@@ -106,11 +120,6 @@ static esp_err_t configurarBotoes(void)
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-
-        /*
-         * Interrupção na transição de nível alto
-         * para nível baixo.
-         */
         .intr_type = GPIO_INTR_NEGEDGE
     };
 
@@ -163,6 +172,12 @@ static esp_err_t configurarBotoes(void)
     return resultado;
 }
 
+/**
+ * @brief Inicializa a fila de eventos, os LEDs e os botões.
+ *
+ * @return ESP_OK em caso de sucesso.
+ * @return Código de erro em caso de falha.
+ */
 esp_err_t inicializarHardware(void)
 {
     filaEventosBotoes = xQueueCreate(
@@ -192,6 +207,14 @@ esp_err_t inicializarHardware(void)
     return ESP_OK;
 }
 
+/**
+ * @brief Aguarda um evento gerado por um dos botões.
+ *
+ * @param evento Ponteiro para armazenar o evento recebido.
+ * @param tempoEspera Tempo máximo de espera em ticks.
+ * @return pdPASS em caso de sucesso.
+ * @return pdFAIL em caso de falha ou timeout.
+ */
 BaseType_t aguardarEventoBotao(
     EventoBotao *evento,
     TickType_t tempoEspera
@@ -212,6 +235,13 @@ BaseType_t aguardarEventoBotao(
     );
 }
 
+/**
+ * @brief Liga o LED de um carregador.
+ *
+ * @param idCarregador Identificador do carregador.
+ * @return ESP_OK em caso de sucesso.
+ * @return ESP_ERR_INVALID_ARG para um ID inválido.
+ */
 esp_err_t ligarLedCarregador(int idCarregador)
 {
     gpio_num_t gpio =
@@ -225,6 +255,13 @@ esp_err_t ligarLedCarregador(int idCarregador)
     return gpio_set_level(gpio, 1);
 }
 
+/**
+ * @brief Desliga o LED de um carregador.
+ *
+ * @param idCarregador Identificador do carregador.
+ * @return ESP_OK em caso de sucesso.
+ * @return ESP_ERR_INVALID_ARG para um ID inválido.
+ */
 esp_err_t desligarLedCarregador(int idCarregador)
 {
     gpio_num_t gpio =

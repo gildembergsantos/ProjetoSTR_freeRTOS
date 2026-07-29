@@ -1,3 +1,8 @@
+/**
+ * @file estacao.c
+ * @brief Implementação do gerenciamento da estação.
+ */
+
 #include <stdio.h>
 
 #include "estacao.h"
@@ -9,6 +14,12 @@
 
 #include "freertos/task.h"
 
+/**
+ * @brief Converte o evento de botão para o tipo de veículo.
+ *
+ * @param evento Evento recebido da fila de botões.
+ * @return Tipo de veículo correspondente.
+ */
 static TipoVeiculo converterEventoParaTipo(
     EventoBotao evento
 )
@@ -27,16 +38,18 @@ static TipoVeiculo converterEventoParaTipo(
     }
 }
 
+/**
+ * @brief Processa os eventos dos botões e cria novos veículos.
+ *
+ * @param parametro Parâmetro não utilizado.
+ */
 static void tarefaChegada(void *parametro)
 {
     (void)parametro;
 
     int proximoId = 1;
 
-    /*
-     * Um instante anterior para cada botão.
-     * Utilizado no tratamento de debounce.
-     */
+    /* Armazena o instante do último evento de cada botão. */
     TickType_t ultimoEvento[3] = {
         0,
         0,
@@ -47,10 +60,7 @@ static void tarefaChegada(void *parametro)
 
     while (1)
     {
-        /*
-         * A tarefa permanece bloqueada até algum botão
-         * gerar um evento.
-         */
+        /* Aguarda um evento gerado por algum botão. */
         if (
             aguardarEventoBotao(
                 &evento,
@@ -64,10 +74,7 @@ static void tarefaChegada(void *parametro)
         TickType_t instanteAtual =
             xTaskGetTickCount();
 
-        /*
-         * Ignora eventos repetidos do mesmo botão
-         * dentro da janela de debounce.
-         */
+        /* Ignora eventos repetidos dentro do tempo de debounce. */
         if (
             ultimoEvento[evento] != 0 &&
             (instanteAtual - ultimoEvento[evento]) <
@@ -100,6 +107,7 @@ static void tarefaChegada(void *parametro)
             )
         );
 
+        /* Insere o veículo na fila correspondente à sua prioridade. */
         if (
             inserirVeiculoNaFila(&veiculo)
             != pdPASS
@@ -118,6 +126,11 @@ static void tarefaChegada(void *parametro)
     }
 }
 
+/**
+ * @brief Seleciona veículos e os encaminha aos carregadores.
+ *
+ * @param parametro Parâmetro não utilizado.
+ */
 static void tarefaEstacao(void *parametro)
 {
     (void)parametro;
@@ -126,9 +139,7 @@ static void tarefaEstacao(void *parametro)
 
     while (1)
     {
-        /*
-         * Primeiro aguarda existir um veículo.
-         */
+        /* Aguarda até existir pelo menos um veículo nas filas. */
         if (
             aguardarVeiculoDisponivel()
             != pdPASS
@@ -141,12 +152,7 @@ static void tarefaEstacao(void *parametro)
             continue;
         }
 
-        /*
-         * Depois aguarda algum carregador ficar livre.
-         *
-         * Enquanto todos estiverem ocupados, os veículos
-         * continuam nas filas de prioridade.
-         */
+        /* Aguarda até existir um carregador disponível. */
         if (
             aguardarVagaCarregador()
             != pdPASS
@@ -159,12 +165,7 @@ static void tarefaEstacao(void *parametro)
             continue;
         }
 
-        /*
-         * Somente agora selecionamos o veículo.
-         * Portanto, emergências que chegaram enquanto
-         * os carregadores estavam ocupados podem passar
-         * na frente dos veículos normais.
-         */
+        /* Remove o veículo de maior prioridade disponível. */
         if (
             removerVeiculoPrioritario(&veiculo)
             != pdPASS
@@ -185,6 +186,7 @@ static void tarefaEstacao(void *parametro)
             textoPrioridade(veiculo.prioridade)
         );
 
+        /* Envia o veículo para a fila compartilhada dos carregadores. */
         if (
             enviarVeiculoParaCarregador(&veiculo)
             != pdPASS
@@ -199,6 +201,12 @@ static void tarefaEstacao(void *parametro)
     }
 }
 
+/**
+ * @brief Inicializa as filas, os carregadores e as tarefas da estação.
+ *
+ * @return pdPASS em caso de sucesso.
+ * @return pdFAIL em caso de falha.
+ */
 BaseType_t inicializarEstacao(void)
 {
     if (inicializarFilas() != pdPASS)

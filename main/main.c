@@ -1,8 +1,16 @@
+/**
+ * @file main.c
+ * @brief Ponto de entrada da aplicação.
+ */
+
 #include <stdio.h>
 
 #include "estacao.h"
 #include "hardware.h"
 
+/**
+ * @brief Inicializa o hardware e os recursos da estação.
+ */
 void app_main(void)
 {
     printf(
