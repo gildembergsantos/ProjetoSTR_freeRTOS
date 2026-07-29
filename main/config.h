@@ -12,8 +12,6 @@
 /* Veículos com bateria menor ou igual a este valor são considerados críticos */
 #define LIMITE_BATERIA_CRITICA 30
 
-/* Probabilidade (%) de gerar um veículo de emergência (quando aplicável) */
-#define CHANCE_EMERGENCIA 20
 
 /* Quantidade de carregadores da estação */
 #define NUM_CARREGADORES 3
