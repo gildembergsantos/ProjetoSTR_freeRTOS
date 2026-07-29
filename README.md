@@ -214,11 +214,16 @@ Os testes realizados permitiram validar:
 - integração entre software e hardware utilizando a ESP32.
 
 ---
+## Vídeo de Demonstração de Funcionamento
+
+- [Vídeo de demonstração](COLE_AQUI_O_LINK_DO_VIDEO)
+
+---
 
 ## Autores
 
-**Luiz Gustavo de Lima Rodrigues**
-**Gildemberg Barbosa Santos**
+**Luiz Gustavo de Lima Rodrigues;**
+**Gildemberg Barbosa Santos;**
 **Vitória Jamille Gonçalves de Oliveira Nóbrega**
 
 
